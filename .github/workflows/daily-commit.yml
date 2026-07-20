@@ -2,7 +2,7 @@ name: Daily activity
 
 on:
   schedule:
-    - cron: '17 3 * * *'   # ~10:17 WIB every day
+    - cron: '1 17 * * *'   # 00:01 WIB every day
   workflow_dispatch:
 
 permissions:
