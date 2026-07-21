@@ -2,8 +2,7 @@ name: Daily activity
 
 on:
   schedule:
-    - cron: '1 17 * * *'   # 00:01 WIB every day
-    - cron: '0 5 * * *'    # 12:00 WIB every day (backup, in case the midnight run is delayed)
+    - cron: '0 18 * * *'   # 18:00 UTC = 01:00 WIB every day
   workflow_dispatch:
 
 permissions:
