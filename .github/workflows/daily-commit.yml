@@ -14,13 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log 10 timestamped entries
+      - name: Log 250 timestamped entries
         run: |
           git config user.name "Dhiyaahaq33"
           git config user.email "139051782+Dhiyaahaq33@users.noreply.github.com"
-          for i in $(seq 1 10); do
+          for i in $(seq 1 250); do
             echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') #$i" >> log.txt
             git add log.txt
-            git commit -m "chore: daily activity log ($i/10)"
+            git commit -q -m "chore: daily activity log ($i/250)"
           done
           git push
