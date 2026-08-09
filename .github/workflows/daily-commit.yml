@@ -11,16 +11,17 @@ permissions:
 jobs:
   commit:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log 250 timestamped entries
+      - name: Log 10,000 timestamped entries
         run: |
           git config user.name "Dhiyaahaq33"
           git config user.email "139051782+Dhiyaahaq33@users.noreply.github.com"
-          for i in $(seq 1 250); do
+          for i in $(seq 1 10000); do
             echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') #$i" >> log.txt
             git add log.txt
-            git commit -q -m "chore: daily activity log ($i/250)"
+            git commit -q -m "chore: daily activity log ($i/10000)"
           done
           git push
