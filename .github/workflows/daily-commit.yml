@@ -11,21 +11,55 @@ permissions:
 jobs:
   commit:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log 10,000 timestamped entries
+      - name: Generate 10,000 commits via git fast-import
         run: |
           git config user.name "Dhiyaahaq33"
           git config user.email "139051782+Dhiyaahaq33@users.noreply.github.com"
-          for i in $(seq 1 10000); do
-            echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') #$i" >> log.txt
-            git add log.txt
-            git commit -q -m "chore: daily activity log ($i/10000)"
-            if [ $((i % 250)) -eq 0 ]; then
-              echo "Progress: $i/10000 ($((i * 100 / 10000))%)"
-            fi
-          done
-          echo "Progress: 10000/10000 (100%) -- pushing now"
-          git push
+          python3 - <<'PY'
+          import subprocess, time, sys
+
+          N = 10000
+          NAME = "Dhiyaahaq33"
+          EMAIL = "139051782+Dhiyaahaq33@users.noreply.github.com"
+          NL = chr(10)
+          now = int(time.time())
+          stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))
+
+          proc = subprocess.Popen(["git", "fast-import", "--quiet"], stdin=subprocess.PIPE)
+
+          def w(s):
+              proc.stdin.write(s.encode())
+
+          content = ""
+          for i in range(1, N + 1):
+              content += stamp + " #" + str(i) + NL
+              msg = "chore: daily activity log (" + str(i) + "/" + str(N) + ")"
+              w("commit refs/heads/main" + NL)
+              w("author " + NAME + " <" + EMAIL + "> " + str(now) + " +0000" + NL)
+              w("committer " + NAME + " <" + EMAIL + "> " + str(now) + " +0000" + NL)
+              msg_bytes = msg.encode()
+              w("data " + str(len(msg_bytes)) + NL)
+              proc.stdin.write(msg_bytes)
+              w(NL)
+              if i == 1:
+                  w("from refs/heads/main^0" + NL)
+              data_bytes = content.encode()
+              w("M 100644 inline log.txt" + NL)
+              w("data " + str(len(data_bytes)) + NL)
+              proc.stdin.write(data_bytes)
+              w(NL)
+              if i % 500 == 0:
+                  print("Progress: " + str(i) + "/" + str(N) + " (" + str(i * 100 // N) + "%)", flush=True)
+
+          proc.stdin.close()
+          ret = proc.wait()
+          if ret != 0:
+              print("git fast-import failed with exit code " + str(ret), file=sys.stderr)
+              sys.exit(ret)
+          print("Progress: " + str(N) + "/" + str(N) + " (100%) -- fast-import done, pushing now")
+          PY
+          git push origin main
